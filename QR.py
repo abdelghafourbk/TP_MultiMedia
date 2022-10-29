@@ -87,7 +87,7 @@ def decode(height, width, file_name='compressed_image.txt', bits=15):
         code = file.readlines()[0]
         
     # Loop through the code and get the color of the pixels
-    size = 2**(bits+1) - 2**bits 
+    size = 2**(bits+1) - 2**bits  #32768 
     i = 0
     data = []
     while i < len(code):
@@ -162,10 +162,43 @@ def decode_qr(list_img):
     imgdecqr= decode(12,12, file_name='data.txt', bits=15)    
     return imgdecqr
 
+# --------------------utiliser resize au lieu de plusieur qr code ----------------#
+def create_qr_resize(image):
+    imageR=cv2.resize(image,(16,16),interpolation = cv2.INTER_AREA)
+    encoded, rate = encode(imageR, file_name='compressed.txt', bits=15)
+    qr = qrcode.make(encoded)
+    qr.save('img.png')
+
+def decode_qr_resize(image):
+    detecteur = cv2.QRCodeDetector()
+    imageqr = cv2.imread(image)
+    val,b,c=detecteur.detectAndDecode(imageqr)
+    fdecodeqr = open("data.txt", "a")
+    #ecrire la chaine final dans un fichier 
+    fdecodeqr.write(val)
+    #decodage 
+    imgdecqr= decode(12,12, file_name='data.txt', bits=15)    
+    return imgdecqr
+
+
 #---------------------------------------------main code --------------------------------------------------------#
 
-image1=cv2.imread("r.png")
+image1=cv2.imread("16x16.png")
 encoded, rate = encode(image1, file_name='compressed.txt', bits=15)
 print(encoded)
+
+#taut de  compression 
+encoded, rate = encode(image1, file_name='compressed1.txt', bits=15)
+print (f'Compression rate :{rate:.02f}%') 
+
+#creer qrcode 
 list_img=create_qr(image1)
 print (decode_qr(list_img))
+
+#decode 
+data= decode_qr(list_img)
+
+#creer image 
+compressed_image = Image.fromarray(data, mode='L')
+compressed_image.show()
+compressed_image.save('decompressed.png')
